@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080a0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sekundenuhr">
+<link rel="manifest" href="manifest.json">
+<title>Sekundenuhr</title>
+<style>
+:root{color-scheme:dark;--bg:#080a0d;--panel:#10141a;--text:#f3f5f7;--muted:#929aa5;--line:#252b34}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text)}
+body{min-height:100svh}
+main{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));background:radial-gradient(circle at 50% 42%,#141a22 0%,#0b0e12 44%,#060709 100%)}
+.panel{width:min(94vw,1050px);text-align:center;padding:clamp(24px,5vmin,58px);border:1px solid var(--line);border-radius:clamp(22px,4vmin,38px);background:rgba(12,15,20,.72);box-shadow:0 24px 80px rgba(0,0,0,.42)}
+.label{font-size:clamp(11px,2.4vw,17px);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-bottom:clamp(12px,2vmin,22px)}
+.clock{font-size:clamp(62px,20vw,210px);font-weight:250;line-height:.9;letter-spacing:.01em;font-variant-numeric:tabular-nums;text-shadow:0 5px 28px rgba(0,0,0,.55);white-space:nowrap}
+.rule{width:min(78%,650px);height:1px;background:var(--line);margin:clamp(24px,4vmin,42px) auto}
+.weekday{font-size:clamp(25px,6vw,58px);font-weight:500;letter-spacing:.02em}
+.date{font-size:clamp(18px,4.3vw,38px);font-weight:300;color:#cbd0d6;margin-top:clamp(8px,1.4vmin,14px)}
+.week{font-size:clamp(14px,3.1vw,25px);color:var(--muted);margin-top:clamp(12px,2vmin,20px);letter-spacing:.08em}
+@media (orientation:landscape){
+ .panel{width:min(92vw,1200px);padding:4vh 5vw}
+ .label{font-size:clamp(10px,1.4vw,15px);margin-bottom:1.5vh}
+ .clock{font-size:clamp(70px,17vw,210px)}
+ .rule{margin:3vh auto}
+ .weekday{font-size:clamp(24px,4vw,50px)}
+ .date{font-size:clamp(17px,2.7vw,32px);margin-top:1vh}
+ .week{font-size:clamp(13px,1.8vw,21px);margin-top:1.3vh}
+}
+</style>
+</head>
+<body>
+<main>
+ <section class="panel">
+   <div class="label">Aktuelle Uhrzeit</div>
+   <div class="clock" id="clock">--:--:--</div>
+   <div class="rule"></div>
+   <div class="weekday" id="weekday">---</div>
+   <div class="date" id="date">--.--.----</div>
+   <div class="week" id="week">Kalenderwoche --</div>
+ </section>
+</main>
+<script>
+const clock=document.getElementById("clock"),weekday=document.getElementById("weekday"),dateEl=document.getElementById("date"),week=document.getElementById("week");
+const weekdays=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+function isoWeek(d){
+ const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+ const day=x.getUTCDay()||7;
+ x.setUTCDate(x.getUTCDate()+4-day);
+ const yearStart=new Date(Date.UTC(x.getUTCFullYear(),0,1));
+ return Math.ceil((((x-yearStart)/86400000)+1)/7);
+}
+function update(){
+ const now=new Date();
+ clock.textContent=now.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
+ weekday.textContent=weekdays[now.getDay()];
+ dateEl.textContent=now.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+ week.textContent="Kalenderwoche "+String(isoWeek(now)).padStart(2,"0");
+}
+update(); setInterval(update,200);
+if("serviceWorker" in navigator) addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js"));
+</script>
+</body>
+</html>
